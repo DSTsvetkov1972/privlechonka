@@ -1,15 +1,24 @@
-import openpyxl
-import os
+from processors.source_checker import source_checker
+from processors.prepared_maker import prepared_maker
+from processors.sent_maker import sent_maker
+from colorama import Fore, Style, init
 
+init()
+print(Style.BRIGHT)
 
-file = os.path.join("files", "свод по каждому заказу.xlsx")
+while True:
+    try:
+        print()
+        print(Fore.BLUE, '1 - получить сводку по файлу "свод по каждому заказу.xlsx"', Fore.RESET)
+        print(Fore.BLUE, '2 - подготовить файл передачи на актирование', Fore.RESET)
+        print(Fore.BLUE, '3 - передать файл на актирование', Fore.RESET)
+        choise = input("Ваш выбор: ")
 
-wb = openpyxl.load_workbook(file)
-
-print("Получаем список листов книги")
-sheet_names = wb.sheetnames
-
-
-for n, sheet in enumerate(sheet_names):
-    ws = wb[sheet]
-    print(f" лист {sheet} {n} из { len(sheet_names) }")
+        if choise == '1':
+            source_checker()
+        elif choise == '2':
+            prepared_maker()
+        elif choise == '3':
+            sent_maker()
+    except Exception as e:
+        print(Fore.RED, str(e), Fore.RESET)

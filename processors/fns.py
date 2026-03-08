@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from colorama import Fore
-from config import template_column_names, summary_sent_path
+from processors.config import template_column_names
 
 
 def depo_cost_parser(s):
@@ -26,9 +26,7 @@ def depo_cost_parser(s):
         return (False, str(e))
     
 
-def sorce_checker(source_file_path, prepared_file_path, summary_sent_path):
-    print('считываем листы в память')
-
+def source_file_checker(source_file_path, prepared_file_path, summary_sent_path):
     all_sheets_dict = pd.read_excel(source_file_path, sheet_name=None)
     correct_sheets_dict = {} # В этот словарь будут помещенны датафреймы листов, в которых нет ошибок
 
