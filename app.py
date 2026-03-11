@@ -2,14 +2,14 @@ from processors.source_checker import source_checker
 from processors.prepared_maker import prepared_maker
 from processors.sent_maker import sent_maker
 from processors.fns import init_project
-
+from logo import logo_colored
 
 
 from colorama import Fore, Style, init
 
 init()
 print(Style.BRIGHT)
-
+print(logo_colored)
 init_project()
 
 while True:

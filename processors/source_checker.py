@@ -1,9 +1,13 @@
 import os
+import sys 
+sys.path.append(os.getcwd())
+
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
-from openpyxl.worksheet.filters import FilterColumn, Filters
+from openpyxl.worksheet.filters import FilterColumn
 import sys
+from processors.config import tmp_files_dir
 
 sys.path.append(os.getcwd())
 from processors.fns import source_file_checker
@@ -12,7 +16,7 @@ from colorama import Fore
 from processors.config import source_file_path, prepared_file_path, summary_source_path, summary_sent_path
 
 def source_checker():
-    while os.path.exists(os.path.join(os.getcwd(), 'files', '~$сводка по исходному файлу.xlsx')):
+    while os.path.exists(os.path.join(tmp_files_dir, '~$сводка по исходному файлу.xlsx')):
         os.startfile(summary_source_path)
         print(Fore.RED, 'Закройте файл "сводка по исходному файлу.xlsx" и нажмите ввод', Fore.RESET, end='')
         input()
