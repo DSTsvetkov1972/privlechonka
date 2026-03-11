@@ -1,10 +1,16 @@
 from processors.source_checker import source_checker
 from processors.prepared_maker import prepared_maker
 from processors.sent_maker import sent_maker
+from processors.fns import init_project
+
+
+
 from colorama import Fore, Style, init
 
 init()
 print(Style.BRIGHT)
+
+init_project()
 
 while True:
     try:

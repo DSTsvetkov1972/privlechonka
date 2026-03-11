@@ -39,6 +39,8 @@ def prepared_maker():
     for sheet, df in correct_sheets_dict.items():
         currency_rate = df['Курс из iSales'].iloc[0]
         depo_cost_str = df['Ставка из iSales'].iloc[0]
+        desicion_num = df['Номер решения ЭС'].iloc[0]
+        desicion_file_name = df['Файл с решением ЭС'].iloc[0]
         depo_cost_dict = depo_cost_parser(depo_cost_str)[1]
 
         df['Заказ'] = sheet
@@ -51,21 +53,31 @@ def prepared_maker():
             container_number = t[1]
             gate_in_date = t[2]
             depo = t[3]
+  
 
             cost = depo_cost_dict.get(depo)
             
             if cost:
                 cost_in_rub = cost*currency_rate
-                prepared_list.append([sheet, container_number, gate_in_date, depo, cost, cost_in_rub])
+                prepared_list.append([sheet, container_number, gate_in_date, depo, cost, cost_in_rub, desicion_num, desicion_file_name])
             else:
                 if depo:
                     err_list.append((sheet, container_number, depo, 'нет цены для депо'))
                 else:
                     err_list.append((sheet, container_number, depo, 'ещё не сдан'))
 
+    
+
     prepared_df = pd.DataFrame(
         prepared_list,
-        columns=['Заказ', 'Номер контейнера', 'Дата сдачи в депо КНР', 'Депо сдачи в КНР', 'Цена $', 'Ставка доплаты, руб']) 
+        columns=['Заказ',
+                 'Номер контейнера',
+                 'Дата сдачи в депо КНР',
+                 'Депо сдачи в КНР',
+                 'Цена $',
+                 'Ставка доплаты, руб',
+                 'Номер решения ЭС',
+                 'Файл с решением ЭС']) 
 
     err_df = pd.DataFrame(
         err_list,
@@ -88,10 +100,12 @@ def prepared_maker():
     ws.column_dimensions['E'].width = 10
     ws.column_dimensions['F'].width = 20
     ws.column_dimensions['G'].width = 20
+    ws.column_dimensions['H'].width = 22
 
 
-    for col in 'ABCDEFG':
-        cell = ws[f'{ col }1']
+
+    for col in range(1, ws.max_column+1):
+        cell = ws.cell(column=col, row=1)
         cell.font = Font(bold=True)  # Жирный шрифт
         cell.alignment = Alignment(horizontal='center', vertical='center')  # Выравнивание по центру
 

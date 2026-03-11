@@ -1,6 +1,8 @@
 import os
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Font
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.filters import FilterColumn, Filters
 import sys
 
 sys.path.append(os.getcwd())
@@ -24,25 +26,44 @@ def source_checker():
     wb = load_workbook(summary_source_path)
 
     ws = wb['Sheet1']
+    ws.row_dimensions[1].height = 45
+
+    ws.auto_filter.ref = f"A1:{ get_column_letter(ws.max_column) }{ len(summary_df) }"
+    col_filter = FilterColumn(colId=1)  # колонка C (индекс 2)
+    # col_filter.filters = Filters(filter=["скрытый"])
+    ws.auto_filter.filterColumn.append(col_filter)
 
     ws.freeze_panes = 'A2'
 
     # Устанавливаем ширину для конкретной колонки
-    ws.column_dimensions['A'].width = 10
-    ws.column_dimensions['B'].width = 32
-    ws.column_dimensions['C'].width = 32
-    ws.column_dimensions['D'].width = 16
-    ws.column_dimensions['E'].width = 16
-    ws.column_dimensions['F'].width = 22
-    ws.column_dimensions['G'].width = 22
-    ws.column_dimensions['H'].width = 26
-    ws.column_dimensions['I'].width = 42
-    ws.column_dimensions['J'].width = 26
 
-    for col in 'ABCDEFGHIJ':
-        cell = ws[f'{ col }1']
+
+    # ws.column_dimensions['A'].width = 12
+    # ws.column_dimensions['B'].width = 16
+    # ws.column_dimensions['C'].width = 22
+    # ws.column_dimensions['D'].width = 16
+    # ws.column_dimensions['E'].width = 20
+    # ws.column_dimensions['F'].width = 22
+    # ws.column_dimensions['G'].width = 18
+    # ws.column_dimensions['H'].width = 18
+    # ws.column_dimensions['I'].width = 18
+    # ws.column_dimensions['J'].width = 18
+    # ws.column_dimensions['K'].width = 18    
+    # ws.column_dimensions['L'].width = 18    
+
+
+    for col in range(1, ws.max_column+1):
+        cell = ws.cell(column=col, row=1)
         cell.font = Font(bold=True)  # Жирный шрифт
-        cell.alignment = Alignment(horizontal='center', vertical='center')  # Выравнивание по центру
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        ws.column_dimensions[get_column_letter(col)].width = 18
+
+
+    for col in range(1, ws.max_column+1):
+        for row in range(2, ws.max_row+1):
+            cell = ws.cell(column=col, row=row)    
+            cell.alignment = Alignment(horizontal='center', vertical='center')  # Выравнивание по центру
+
 
     wb.save(summary_source_path)
 

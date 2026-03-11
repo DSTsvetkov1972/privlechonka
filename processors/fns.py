@@ -1,7 +1,14 @@
 import pandas as pd
+
 import os
+import sys
+
+from docxtpl import DocxTemplate
+
+sys.path.append(os.getcwd())
+
 from colorama import Fore
-from processors.config import template_column_names
+from processors.config import template_column_names,source_file_path, prepared_file_path, summary_sent_path, sent_dir, decisions_dir, files_dir, tmp_files_dir, decisions_dir
 
 
 def depo_cost_parser(s):
@@ -27,6 +34,10 @@ def depo_cost_parser(s):
     
 
 def source_file_checker(source_file_path, prepared_file_path, summary_sent_path):
+
+    excel_file = pd.ExcelFile(source_file_path)
+    hidden_sheets = [sheet.title for sheet in excel_file.book._sheets if sheet.sheet_state == 'hidden']
+
     all_sheets_dict = pd.read_excel(source_file_path, sheet_name=None)
     correct_sheets_dict = {} # В этот словарь будут помещенны датафреймы листов, в которых нет ошибок
 
@@ -36,7 +47,13 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
 
     for sheet, df in all_sheets_dict.items():
         # print(Fore.MAGENTA, sheet, Fore.RESET)
-        df_columns = list(df.columns)
+        if sheet in hidden_sheets:
+            sheet_state = 'скрытый'
+        else:
+            sheet_state = '-'
+
+
+        df_columns = list(df.columns)[:len(template_column_names)] # Проверяются только первые имена колонок датафрейма, т.к. остальные для свободного заполнения
         
         columns_not_in_template = [df_column for df_column in df_columns if df_column not in template_column_names]
         if columns_not_in_template:
@@ -72,6 +89,29 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
         else:
             depo_cost_err = "не заполнено"
 
+        if 'Номер решения ЭС' in df_columns and len(df)!=0:
+            desicion_num = df['Номер решения ЭС'].iloc[0]
+            
+            if desicion_num:
+                desicion_num_err = "-"
+            else:
+                desicion_num_err = "не заполнено"
+        else:
+            desicion_num_err = "нет колонки"                
+
+        if 'Файл с решением ЭС' in df_columns and len(df)!=0:
+            desicion_file_name = df['Файл с решением ЭС'].iloc[0]
+            # print(Fore.BLUE, sheet, desicion_file_name, Fore.RESET)
+
+            if desicion_file_name != desicion_file_name or desicion_file_name == "":
+                desicion_file_name_err = "не заполнено"
+            elif not os.path.exists(os.path.join(decisions_dir, str(desicion_file_name))):
+                desicion_file_name_err = f"нет файла: {desicion_file_name}" 
+            else:
+                desicion_file_name_err = "-"
+        else:
+            desicion_file_name_err = "нет колонки"                  
+
 
         if 'Номер контейнера' in df_columns and len(df)>1:
             conts_qty = len((df['Номер контейнера']))
@@ -83,16 +123,25 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
             depos = depos[depos != '']
             depos_qty = len(depos)
         
+        if 'Дата актирования' in df_columns and len(df)>1:
+            acted = df['Дата актирования']
+            acted = acted.dropna()
+            acted = acted[acted != '']
+            acted_qty = len(acted)
 
         summary_list.append(
             [sheet,
+            sheet_state,
             columns_not_in_template_err,
             columns_not_in_df_err,
             currency_rate_err,
             depo_cost_err,
+            desicion_num_err,
+            desicion_file_name_err,
             conts_qty,
             last_cont,
-            depos_qty
+            depos_qty,
+            acted_qty
             ])
         
         if (columns_not_in_template_err == '-' and
@@ -102,20 +151,24 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
             correct_sheets_dict[sheet] = all_sheets_dict[sheet]
 
 
-
-
     summary_df = pd.DataFrame(
         summary_list,
         columns = ['Заказ',
+                   'Скрытый',
                    'Колонки которых нет в шаблоне',
                    'Нет колонок из шаблона',
                    'Курс из iSales',
                    'Ставка из iSales',
+                   'Номер решения ЭС',
+                   'Файл с решением ЭС',
                    'Контейнеров на листе',
                    'Последний контейнер',
-                   'Заполненных депо сдачи']
+                   'Заполненных депо сдачи',
+                   'Актировано']
                    )
-    
+
+
+
     if os.path.exists(prepared_file_path):
         prepared_df = pd.read_excel(
             prepared_file_path,
@@ -138,13 +191,13 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
 
     check_df = pd.merge(summary_df, prepared_grouped, on='Заказ', how='left')
     check_df = pd.merge(check_df, sent_grouped, on='Заказ', how='left')
+    check_df = check_df.fillna({'Подготовленно к передаче на актирование': 0, 'Передано на актирование':0})
 
     return {'check_df': check_df,
             'correct_sheets_dict': correct_sheets_dict}    
 
 
 def get_last_sent_number():
-    sent_dir = os.path.join(os.getcwd(), 'files', 'sent')
     sent_files = list(os.walk(sent_dir))[0][2]
 
     if not sent_files:
@@ -153,6 +206,54 @@ def get_last_sent_number():
         last_sent_file = max(sent_files)
         last_number = last_sent_file.split('_')[1]
         return last_number
+
+def init_project():
+    if not os.path.exists(files_dir):
+        os.mkdir(files_dir)
+    if not os.path.exists(sent_dir):
+        os.mkdir(sent_dir)
+    if not os.path.exists(decisions_dir):
+        os.mkdir(decisions_dir)
+    if not os.path.exists(tmp_files_dir):
+        os.mkdir(tmp_files_dir)
+
+########################################
+
+def create_doc_file(summary_prepared_df, sent_file_doc_path):
+    # summary_prepared_df = pd.read_excel(prepared_file_path)
+
+    grouped = summary_prepared_df.groupby(['Заказ', 'Номер решения ЭС','Файл с решением ЭС']).agg(
+        conts_qty = ('Номер контейнера', 'count'),
+        total_in_rub=('Ставка доплаты, руб', 'sum'))
+
+
+    context = {'orders': []}
+
+    for i in grouped.itertuples():
+        context['orders'].append({
+            'order': i[0][0],
+            'desicion_num': i[0][1],
+            'desicion_file_name': i[0][2],
+            'conts_qty': i[1],
+            'total_in_rub': i[2]
+        })
+
+    doc = DocxTemplate(os.path.join(r"C:\Users\tsvetkovds\Documents\.PROJECTS\ПРИВЛЕЧЕНКА\Файлы","Шаблон СЗ.docx"))
+    doc.render(context)
+    doc.save(sent_file_doc_path)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
@@ -166,4 +267,4 @@ Yiwu, Wuhan: 355;
 Hefei: 305;
 Taicang, Xi`an: 355;
 Xiamen, Shenzhen(Yantian): 455"""
-    print(depo_cost_parser(s))
+    source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
