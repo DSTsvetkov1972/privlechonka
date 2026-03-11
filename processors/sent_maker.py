@@ -59,7 +59,7 @@ def sent_maker():
 
     os.rename(prepared_file_path, sent_file_xlsx_path)
 
-    create_doc_file(summary_prepared_df,sent_file_doc_path)
+    create_doc_file(prepared_df,sent_file_doc_path)
 
     with zipfile.ZipFile(sent_file_zip_path, 'w') as zipf:
         desicion_file_names = prepared_df['Файл с решением ЭС'].drop_duplicates()

@@ -1,4 +1,5 @@
 import pandas as pd
+import openpyxl
 
 import os
 import sys
@@ -35,8 +36,12 @@ def depo_cost_parser(s):
 
 def source_file_checker(source_file_path, prepared_file_path, summary_sent_path):
 
-    excel_file = pd.ExcelFile(source_file_path)
-    hidden_sheets = [sheet.title for sheet in excel_file.book._sheets if sheet.sheet_state == 'hidden']
+    wb = openpyxl.load_workbook(source_file_path)
+    sheet_names = wb.sheetnames
+
+    hidden_sheets = [sheet for sheet in sheet_names if wb[sheet].sheet_state == 'hidden']
+
+    wb.close()
 
     all_sheets_dict = pd.read_excel(source_file_path, sheet_name=None)
     correct_sheets_dict = {} # В этот словарь будут помещенны датафреймы листов, в которых нет ошибок
@@ -219,10 +224,10 @@ def init_project():
 
 ########################################
 
-def create_doc_file(summary_prepared_df, sent_file_doc_path):
+def create_doc_file(prepared_df, sent_file_doc_path):
     # summary_prepared_df = pd.read_excel(prepared_file_path)
 
-    grouped = summary_prepared_df.groupby(['Заказ', 'Номер решения ЭС','Файл с решением ЭС']).agg(
+    grouped = prepared_df.groupby(['Заказ', 'Номер решения ЭС','Файл с решением ЭС']).agg(
         conts_qty = ('Номер контейнера', 'count'),
         total_in_rub=('Ставка доплаты, руб', 'sum'))
 
