@@ -73,7 +73,30 @@ def sent_maker():
 
     print(Fore.GREEN, f'Передан на актирование { sent_file_short_name } (.xlsx, .doc, .zip)', Fore.RESET)
         
+    wb = load_workbook(summary_sent_path)
+    ws =wb.active
 
+    ws.freeze_panes = 'A2'
+
+    # Устанавливаем ширину для конкретной колонки
+    ws.column_dimensions['A'].width = 10
+    ws.column_dimensions['B'].width = 20
+    ws.column_dimensions['C'].width = 22
+    ws.column_dimensions['D'].width = 18
+    ws.column_dimensions['E'].width = 10
+    ws.column_dimensions['F'].width = 20
+    ws.column_dimensions['G'].width = 20
+    ws.column_dimensions['H'].width = 22
+
+
+
+    for col in range(1, ws.max_column+1):
+        cell = ws.cell(column=col, row=1)
+        cell.font = Font(bold=True)  # Жирный шрифт
+        cell.alignment = Alignment(horizontal='center', vertical='center')  # Выравнивание по центру
+
+    wb.save(summary_sent_path)
+    
 
 
     

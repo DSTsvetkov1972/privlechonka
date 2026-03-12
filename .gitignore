@@ -3,3 +3,4 @@ __pycache__
 Файлы/
 test.py
 *.xlsx
+output/
