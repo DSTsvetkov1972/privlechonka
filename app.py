@@ -10,8 +10,17 @@ from colorama import Fore, Style, init
 init()
 print(Style.BRIGHT)
 print(logo_colored)
-init_project()
 
+while True:
+    if not init_project():
+        print(Fore.RED,
+            'Название папки проекта не должно содеражать подчёркиваний!\n'
+            ' Закройте программу и перименуйте папку проекта!',
+            Fore.RESET)
+        input()
+    else:
+        break
+    
 while True:
     try:
         print()

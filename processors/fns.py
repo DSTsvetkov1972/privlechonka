@@ -117,6 +117,12 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
         else:
             desicion_file_name_err = "нет колонки"                  
 
+        if 'Комментарий' in df_columns and len(df)!=0:
+            rem = df['Комментарий'].iloc[0]
+        else:
+            rem = "нет колонки"
+
+
 
         if 'Номер контейнера' in df_columns and len(df)>1:
             conts_qty = len((df['Номер контейнера']))
@@ -137,6 +143,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
         summary_list.append(
             [sheet,
             sheet_state,
+            rem,
             columns_not_in_template_err,
             columns_not_in_df_err,
             currency_rate_err,
@@ -160,6 +167,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
         summary_list,
         columns = ['Заказ',
                    'Скрытый',
+                   'Комментарий',
                    'Колонки которых нет в шаблоне',
                    'Нет колонок из шаблона',
                    'Курс из iSales',
@@ -213,14 +221,30 @@ def get_last_sent_number():
         return last_number
 
 def init_project():
+    # print(os.getcwd().split('\\')[-1], '_' in os.getcwd().split('\\')[-1])
+
+    if '_' in os.getcwd().split('\\')[-1]:
+        return False
+
+            
     if not os.path.exists(files_dir):
         os.mkdir(files_dir)
-    if not os.path.exists(sent_dir):
-        os.mkdir(sent_dir)
-    if not os.path.exists(decisions_dir):
-        os.mkdir(decisions_dir)
+        print(Fore.GREEN, f'В папке проекта создана папка "{ files_dir.split('\\')[-1] }"', Fore.RESET)
+
     if not os.path.exists(tmp_files_dir):
         os.mkdir(tmp_files_dir)
+        print(Fore.GREEN, f'В папке проекта в папке "{ files_dir.split('\\')[-1] }" создана папка "{ tmp_files_dir.split('\\')[-1] }"', Fore.RESET)
+
+    if not os.path.exists(sent_dir):
+        os.mkdir(sent_dir)
+        print(Fore.GREEN, f'В папке проекта в папке "{ files_dir.split('\\')[-1] }" создана папка "{ sent_dir.split('\\')[-1] }"', Fore.RESET)
+
+    if not os.path.exists(decisions_dir):
+        os.mkdir(decisions_dir)
+        print(Fore.GREEN, f'В папке проекта в папке "{ files_dir.split('\\')[-1] }" создана папка "{ decisions_dir.split('\\')[-1] }"', Fore.RESET)        
+
+
+    return True        
 
 ########################################
 
