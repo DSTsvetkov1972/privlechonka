@@ -267,7 +267,7 @@ def create_doc_file(prepared_df, sent_file_doc_path):
             'total_in_rub': i[2]
         })
 
-    doc = DocxTemplate(os.path.join(r"C:\Users\tsvetkovds\Documents\.PROJECTS\ПРИВЛЕЧЕНКА\Файлы","Шаблон СЗ.docx"))
+    doc = DocxTemplate(os.path.join(files_dir,"Шаблон СЗ.docx"))
     doc.render(context)
     doc.save(sent_file_doc_path)
 
