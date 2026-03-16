@@ -211,7 +211,8 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
             acted_qty
             ])
         
-        if (columns_not_in_template_err == '-' and
+        if (sheet_state == '-' and
+            columns_not_in_template_err == '-' and
             columns_not_in_df_err == '-' and
             currency_rate_err == '-' and
             depo_cost_err == '-'):
