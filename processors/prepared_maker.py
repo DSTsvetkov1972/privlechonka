@@ -58,7 +58,10 @@ def prepared_maker():
             cost = depo_cost_dict.get(depo)
             
             if cost:
-                cost_in_rub = cost*currency_rate
+                #cost = int(float(cost))*100
+                #currency_rate = int(float(currency_rate))*100
+                print(type(cost), cost, type(currency_rate),currency_rate)
+                cost_in_rub = cost*float(currency_rate)
                 prepared_list.append([sheet, container_number, gate_in_date, depo, cost, cost_in_rub, desicion_num, desicion_file_name])
             else:
                 if depo:
