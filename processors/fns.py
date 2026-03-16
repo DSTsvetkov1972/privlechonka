@@ -41,6 +41,21 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
 
     hidden_sheets = [sheet for sheet in sheet_names if wb[sheet].sheet_state == 'hidden']
 
+
+    sheet_color_list = []
+    for sheet in wb.sheetnames:
+        a = wb[sheet].sheet_properties.tabColor
+        if a:
+            sheet_color_list.append((sheet, a.__dict__))
+            print(Fore.MAGENTA, sheet, a.__dict__, Fore.RESET)
+        else:
+            sheet_color_list.append((sheet, None))
+    
+
+            
+
+
+
     wb.close()
 
     all_sheets_dict = pd.read_excel(source_file_path, sheet_name=None)
@@ -49,9 +64,12 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
     #print(all_sheets_dict)
 
     summary_list = []
+   
 
     for sheet, df in all_sheets_dict.items():
         # print(Fore.MAGENTA, sheet, Fore.RESET)
+
+
         if sheet in hidden_sheets:
             sheet_state = 'скрытый'
         else:
@@ -207,6 +225,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
     check_df = check_df.fillna({'Подготовленно к передаче на актирование': 0, 'Передано на актирование':0})
 
     return {'check_df': check_df,
+            'sheet_color_list': sheet_color_list,
             'correct_sheets_dict': correct_sheets_dict}    
 
 

@@ -3,7 +3,7 @@ import sys
 sys.path.append(os.getcwd())
 
 from openpyxl import load_workbook
-from openpyxl.styles import Alignment, Font
+from openpyxl.styles import Alignment, Font, PatternFill, Color
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.filters import FilterColumn
 import sys
@@ -67,6 +67,52 @@ def source_checker():
         for row in range(2, ws.max_row+1):
             cell = ws.cell(column=col, row=row)    
             cell.alignment = Alignment(horizontal='center', vertical='center')  # Выравнивание по центру
+
+    for row, sheet_color_tuple in enumerate(sorce_checker_res['sheet_color_list'], 2):
+        sheet_color_dict= sheet_color_tuple[1]
+        if not sheet_color_dict:
+            continue
+
+        cell =ws[f'A{ row }']
+        if sheet_color_dict['type'] == 'rgb':
+            if sheet_color_dict['tint'] != 0:
+                cell.fill = PatternFill(
+                    fgColor=Color(rgb=sheet_color_dict['rgb'], tint=sheet_color_dict['tint']),
+                    fill_type="solid"
+                )
+            else:
+                cell.fill = PatternFill(fgColor=sheet_color_dict['rgb'], fill_type="solid")
+        
+        elif sheet_color_dict['type'] == 'theme':
+            if sheet_color_dict['tint'] != 0:
+                cell.fill = PatternFill(
+                    fgColor=Color(theme=sheet_color_dict['theme'], tint=sheet_color_dict['tint']),
+                    fill_type="solid"
+                )
+            else:
+                cell.fill = PatternFill(
+                    fgColor=Color(theme=sheet_color_dict['theme']),
+                    fill_type="solid"
+                )
+        
+        elif sheet_color_dict['type'] == 'tint_only':
+            # Используем базовый цвет по умолчанию (синий)
+            cell.fill = PatternFill(
+                fgColor=Color(rgb="4472C4", tint=sheet_color_dict['tint']),
+                fill_type="solid"
+            )
+
+        elif sheet_color_dict['type'] == 'indexed':
+            if sheet_color_dict['tint'] != 0:
+                cell.fill = PatternFill(
+                    fgColor=Color(indexed=sheet_color_dict['indexed'], tint=sheet_color_dict['tint']),
+                    fill_type="solid"
+                )
+            else:
+                cell.fill = PatternFill(
+                    fgColor=Color(indexed=sheet_color_dict['indexed']),
+                    fill_type="solid"
+                )
 
 
     wb.save(summary_source_path)
