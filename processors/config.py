@@ -1,4 +1,7 @@
 import os
+import warnings
+
+warnings.filterwarnings("ignore", message="Conditional Formatting extension is not supported and will be removed")
 
 template_column_names = [
     'Номер контейнера',

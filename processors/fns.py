@@ -13,7 +13,9 @@ from processors.config import template_column_names,source_file_path, prepared_f
 
 
 def depo_cost_parser(s):
-
+    if not s:
+        return (False, 'не заполнено')
+    
     try:
         # s = str(s)
         s = s.replace(' ', '').replace('\n', ';')
@@ -47,7 +49,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
         a = wb[sheet].sheet_properties.tabColor
         if a:
             sheet_color_list.append((sheet, a.__dict__))
-            print(Fore.MAGENTA, sheet, a.__dict__, Fore.RESET)
+            # print(Fore.MAGENTA, sheet, a.__dict__, Fore.RESET)
         else:
             sheet_color_list.append((sheet, None))
     
@@ -58,7 +60,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
 
     wb.close()
 
-    all_sheets_dict = pd.read_excel(source_file_path, sheet_name=None)
+    all_sheets_dict = pd.read_excel(source_file_path, sheet_name=None, dtype=str)
     correct_sheets_dict = {} # В этот словарь будут помещенны датафреймы листов, в которых нет ошибок
 
     #print(all_sheets_dict)
@@ -68,6 +70,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
 
     for sheet, df in all_sheets_dict.items():
         # print(Fore.MAGENTA, sheet, Fore.RESET)
+        df = df.fillna('')
 
 
         if sheet in hidden_sheets:
@@ -91,24 +94,34 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
             columns_not_in_df_err = '-'
 
         if 'Курс из iSales' in df_columns and len(df)!=0:
-            try:
-                currency_rate_cell_value = df['Курс из iSales'].iloc[0]
-                currency_rate = float(str(currency_rate_cell_value).replace(',', '.'))
-                currency_rate_err = '-'
-            except ValueError:
-                currency_rate_err = f'не число: "{currency_rate_cell_value}"' 
+            currency_rate_cell_value = df['Курс из iSales'].iloc[0]
+            # print(currency_rate_cell_value)
+            if currency_rate_cell_value:
+                try:
+                    float(str(currency_rate_cell_value).replace(',', '.'))
+                    currency_rate_err = '-'
+                except ValueError:
+                    currency_rate_err = f'не число: "{currency_rate_cell_value}"' 
+            else:
+                currency_rate_err = "не заполнено"
+        elif 'Курс из iSales' in df_columns and len(df)==0:
+            currency_rate_err = "на листе только заголовки"              
         else:
             currency_rate_err = "не заполнено"
 
 
         if 'Ставка из iSales' in df_columns and len(df)!=0:
             depo_cost_cell_value = df['Ставка из iSales'].iloc[0]
+
             depo_cost_parser_res = depo_cost_parser(depo_cost_cell_value)
             
             if depo_cost_parser_res[0]:
                 depo_cost_err = '-' 
             else:
                 depo_cost_err = depo_cost_parser_res[1]
+
+        elif 'Ставка из iSales' in df_columns and len(df)==0:
+            depo_cost_err = "на листе только заголовки" 
         else:
             depo_cost_err = "не заполнено"
 
@@ -119,8 +132,11 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
                 desicion_num_err = "-"
             else:
                 desicion_num_err = "не заполнено"
+        elif 'Номер решения ЭС' in df_columns and len(df)==0:
+            desicion_num_err = "на листе только заголовки"               
         else:
             desicion_num_err = "нет колонки"                
+
 
         if 'Файл с решением ЭС' in df_columns and len(df)!=0:
             desicion_file_name = df['Файл с решением ЭС'].iloc[0]
@@ -132,31 +148,52 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
                 desicion_file_name_err = f"нет файла: {desicion_file_name}" 
             else:
                 desicion_file_name_err = "-"
+        elif 'Файл с решением ЭС' in df_columns and len(df)==0:
+            desicion_file_name_err = "на листе только заголовки"                
         else:
             desicion_file_name_err = "нет колонки"                  
 
         if 'Комментарий' in df_columns and len(df)!=0:
+            
             rem = df['Комментарий'].iloc[0]
+            
+        elif 'Комментарий' in df_columns and len(df)==0:
+            rem = "на листе только заголовки" 
         else:
             rem = "нет колонки"
 
 
 
-        if 'Номер контейнера' in df_columns and len(df)>1:
-            conts_qty = len((df['Номер контейнера']))
+        if 'Номер контейнера' in df_columns and len(df)!=0:
+            conts = df['Номер контейнера']
+            conts = conts.dropna()
+            conts = conts[conts != '']
+            conts_qty = len(conts)
             last_cont = df['Номер контейнера'].iloc[conts_qty-1]
 
-        if 'Депо сдачи в КНР' in df_columns and len(df)>1:
+        elif 'Номер контейнера' in df_columns and len(df)==0:
+            conts_qty = 0
+            last_cont = "на листе только заголовки" 
+
+
+
+
+        if 'Депо сдачи в КНР' in df_columns and len(df)!=0:
             depos = df['Депо сдачи в КНР']
             depos = depos.dropna()
             depos = depos[depos != '']
             depos_qty = len(depos)
+
+        elif 'Депо сдачи в КНР' in df_columns and len(df)==0:   
+            depos_qty = "на листе только заголовки"         
+
         
         if 'Дата актирования' in df_columns and len(df)>1:
             acted = df['Дата актирования']
             acted = acted.dropna()
             acted = acted[acted != '']
             acted_qty = len(acted)
+
 
         summary_list.append(
             [sheet,
@@ -315,4 +352,4 @@ Yiwu, Wuhan: 355;
 Hefei: 305;
 Taicang, Xi`an: 355;
 Xiamen, Shenzhen(Yantian): 455"""
-    source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
+    print(source_file_checker(source_file_path, prepared_file_path, summary_sent_path))

@@ -65,8 +65,13 @@ def source_checker():
 
     for col in range(1, ws.max_column+1):
         for row in range(2, ws.max_row+1):
-            cell = ws.cell(column=col, row=row)    
-            cell.alignment = Alignment(horizontal='center', vertical='center')  # Выравнивание по центру
+            cell = ws.cell(column=col, row=row)
+            if get_column_letter(col) in 'JLMNO':
+                cell.alignment = Alignment(horizontal='center', vertical='center') # Выравнивание по центру
+            else:
+                cell.alignment = Alignment(horizontal='left', vertical='center') # Выравнивание по центру если числовой столбец
+
+
 
     # переносим в сводку цвета ярлыков из исходника
     for row, sheet_color_tuple in enumerate(sorce_checker_res['sheet_color_list'], 2):
