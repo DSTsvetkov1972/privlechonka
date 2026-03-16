@@ -13,7 +13,7 @@ logo = Fore.BLACK + """
 
 
 
-version = " v.2026-03-11\n"
+version = " v.2026-03-16\n"
 
 advertisement = """
  Нужна быстрая автоматизация или аналитика
