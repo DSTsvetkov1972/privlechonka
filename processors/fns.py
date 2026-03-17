@@ -78,14 +78,13 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
         else:
             sheet_state = '-'
 
-
-        df_columns = list(df.columns)[:len(template_column_names)] # Проверяются только первые имена колонок датафрейма, т.к. остальные для свободного заполнения
+        df_columns = list(df.columns)
+        df_columns_to_check = df_columns[:len(template_column_names)+1]# Проверяем, чтобы первые колонки таблице на листе соответствовали шаблону
         
-        columns_not_in_template = [df_column for df_column in df_columns if df_column not in template_column_names]
-        if columns_not_in_template:
-            columns_not_in_template_err = str(columns_not_in_template)[1:-1]
+        if not df_columns_to_check == template_column_names:
+            matching_first_columns = f"{ template_column_names } - должно быть так, а на листе:\n{ df_columns_to_check }"
         else:
-            columns_not_in_template_err = '-'
+            matching_first_columns = '-'
 
         columns_not_in_df = [template_column for template_column in template_column_names if template_column not in df_columns]
         if columns_not_in_df:
@@ -199,7 +198,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
             [sheet,
             sheet_state,
             rem,
-            columns_not_in_template_err,
+            matching_first_columns,
             columns_not_in_df_err,
             currency_rate_err,
             depo_cost_err,
@@ -212,11 +211,11 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
             ])
         
         if (sheet_state == '-' and
-            columns_not_in_template_err == '-' and
+            matching_first_columns == '-' and
             columns_not_in_df_err == '-' and
             currency_rate_err == '-' and
             depo_cost_err == '-'):
-            correct_sheets_dict[sheet] = all_sheets_dict[sheet]
+                        correct_sheets_dict[sheet] = all_sheets_dict[sheet]
 
 
     summary_df = pd.DataFrame(
@@ -224,7 +223,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
         columns = ['Заказ',
                    'Скрытый',
                    'Комментарий',
-                   'Колонки которых нет в шаблоне',
+                   'Соответствие первых колонок шаблону',
                    'Нет колонок из шаблона',
                    'Курс из iSales',
                    'Ставка из iSales',
