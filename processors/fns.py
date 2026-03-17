@@ -210,11 +210,16 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
             acted_qty
             ])
         
+        # это блок который создаёт словарь с датафреймами, которые могут добавляться в подготовленные к отправке на актирование
         if (sheet_state == '-' and
+            rem[:4] != 'stop',                    # комментарий не начинается со слова "stop"
             matching_first_columns == '-' and
             columns_not_in_df_err == '-' and
             currency_rate_err == '-' and
-            depo_cost_err == '-'):
+            depo_cost_err == '-' and
+            desicion_num_err == '-' and
+            desicion_file_name_err == '-'
+            ):
                         correct_sheets_dict[sheet] = all_sheets_dict[sheet]
 
 
