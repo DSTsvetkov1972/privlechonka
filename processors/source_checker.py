@@ -66,7 +66,7 @@ def source_checker():
     for col in range(1, ws.max_column+1):
         for row in range(2, ws.max_row+1):
             cell = ws.cell(column=col, row=row)
-            if get_column_letter(col) in 'JLMNO':
+            if get_column_letter(col) in 'IKLMN':
                 cell.alignment = Alignment(horizontal='center', vertical='center') # Выравнивание по центру
             else:
                 cell.alignment = Alignment(horizontal='left', vertical='center') # Выравнивание по центру если числовой столбец

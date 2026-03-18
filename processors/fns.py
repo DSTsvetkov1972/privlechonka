@@ -78,11 +78,13 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
         else:
             sheet_state = '-'
 
-        df_columns = list(df.columns)
+        df_columns = [str(column) for column in df.columns]
         df_columns_to_check = df_columns[:len(template_column_names)+1]# Проверяем, чтобы первые колонки таблице на листе соответствовали шаблону
         
         if not df_columns_to_check == template_column_names:
-            matching_first_columns = f"{ template_column_names } - должно быть так, а на листе:\n{ df_columns_to_check }"
+            # matching_first_columns = f'ШАБЛОН:\n"{ '", "'.join(template_column_names) }"'
+            # matching_first_columns = f'НА ЛИСТЕ:\n"{ '", "'.join(df_columns_to_check) }"'
+            matching_first_columns = f'ШАБЛОН:\n"{ '", "'.join(template_column_names) }"\nНА ЛИСТЕ:\n"{ '", "'.join(df_columns_to_check) }"'
         else:
             matching_first_columns = '-'
 
@@ -100,7 +102,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
                     float(str(currency_rate_cell_value).replace(',', '.'))
                     currency_rate_err = '-'
                 except ValueError:
-                    currency_rate_err = f'не число: "{currency_rate_cell_value}"' 
+                    currency_rate_err = f'На листе { sheet } "Курс из iSales" не число: "{currency_rate_cell_value}"' 
             else:
                 currency_rate_err = "не заполнено"
         elif 'Курс из iSales' in df_columns and len(df)==0:
@@ -199,7 +201,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
             sheet_state,
             rem,
             matching_first_columns,
-            columns_not_in_df_err,
+            # columns_not_in_df_err,
             currency_rate_err,
             depo_cost_err,
             desicion_num_err,
@@ -214,7 +216,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
         if (sheet_state == '-' and
             rem[:4] != 'stop',                    # комментарий не начинается со слова "stop"
             matching_first_columns == '-' and
-            columns_not_in_df_err == '-' and
+            # columns_not_in_df_err == '-' and
             currency_rate_err == '-' and
             depo_cost_err == '-' and
             desicion_num_err == '-' and
@@ -229,7 +231,7 @@ def source_file_checker(source_file_path, prepared_file_path, summary_sent_path)
                    'Скрытый',
                    'Комментарий',
                    'Соответствие первых колонок шаблону',
-                   'Нет колонок из шаблона',
+                   # 'Нет колонок из шаблона',
                    'Курс из iSales',
                    'Ставка из iSales',
                    'Номер решения ЭС',
